@@ -107,5 +107,87 @@ resource "aws_nat_gateway" "main" {
   
   #to ensure proper ordering it is recommended to add an explicit dependency
   # on the internet gatway for the vpc
-  depends_on = [aws_internet_gateway.main]
+  #depends_on = [aws_internet_gateway.main]
+}
+
+#public routetable
+resource "aws_route_table" "public" {
+  vpc_id = aws_vpc.main.id  #vpc name is main
+
+  tags = merge (
+    var.common_tags,
+    var.public_route_table_tags,
+    {
+    Name = "${local.resource_name}-public"  #name like expense-dev-public
+  }
+  )
+}
+
+
+#private rotetable
+resource "aws_route_table" "private" {
+  vpc_id = aws_vpc.main.id  #vpc name is main
+
+  tags = merge (
+    var.common_tags,
+    var.private_route_table_tags,
+    {
+    Name = "${local.resource_name}-private"  #name like expense-dev-public
+  }
+  )
+}
+
+#database route table
+resource "aws_route_table" "database" {
+  vpc_id = aws_vpc.main.id  #vpc name is main
+
+  tags = merge (
+    var.common_tags,
+    var.database_route_table_tags,
+    {
+    Name = "${local.resource_name}-database"  #name like expense-dev-public
+  }
+  )
+}
+
+
+#routes
+resource "aws_route" "public" {
+  route_table_id            = aws_route_table.public.id
+  destination_cidr_block    = "0.0.0.0/0"
+  vpc_peering_connection_id = aws_internet_gateway.vgw.id    #throug internet gatway so we mentioned id here
+}
+
+resource "aws_route" "private_nat" {
+  route_table_id            = aws_route_table.private.id
+  destination_cidr_block    = "0.0.0.0/0"
+  vpc_peering_connection_id = aws_nat_gateway.main.id   #throug internet gatway so we mentioned id here
+}
+
+
+resource "aws_route" "database_nat" {
+  route_table_id            = aws_route_table.database.id
+  destination_cidr_block    = "0.0.0.0/0"
+  vpc_peering_connection_id = aws_nat_gateway.main.id    #throug internet gatway so we mentioned id here
+}
+
+#now association routes to route tables
+resource "aws_route_table_association" "public" {
+  count = length(var.public_subnet_cidrs)
+  subnet_id      = aws_subnet.public[count.index].id  #2 times it's iterate the id
+  route_table_id = aws_route_table.public.id
+}
+
+#private 
+resource "aws_route_table_association" "private" {
+  count = length(var.private_subnet_cidrs)
+  subnet_id      = aws_subnet.private[count.index].id  #2 times it's iterate the id
+  route_table_id = aws_route_table.private.id
+}
+
+#database
+resource "aws_route_table_association" "database" {
+  count = length(var.database_subnet_cidrs)
+  subnet_id      = aws_subnet.database[count.index].id  #2 times it's iterate the id
+  route_table_id = aws_route_table.database.id
 }
