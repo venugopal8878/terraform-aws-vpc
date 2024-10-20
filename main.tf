@@ -152,23 +152,23 @@ resource "aws_route_table" "database" {
 
 
 #routes
-resource "aws_route" "public-a" {
+resource "aws_route" "public" {
   route_table_id            = aws_route_table.public.id
   destination_cidr_block    = "0.0.0.0/0"
-  vpc_peering_connection_id = aws_internet_gateway.vgw.id    #throug internet gatway so we mentioned id here
+   gateway_id = aws_internet_gateway.vgw.id    #throug internet gatway so we mentioned id here
 }
 
-resource "aws_route" "private_nat-c" {
+resource "aws_route" "private_nat" {
   route_table_id            = aws_route_table.private.id
   destination_cidr_block    = "0.0.0.0/0"
-  vpc_peering_connection_id = aws_nat_gateway.main.id   #throug internet gatway so we mentioned id here
+  nat_gateway_id = aws_nat_gateway.main.id   #throug internet gatway so we mentioned id here
 }
 
 
-resource "aws_route" "database_nat-v" {
+resource "aws_route" "database_nat" {
   route_table_id            = aws_route_table.database.id
   destination_cidr_block    = "0.0.0.0/0"
-  vpc_peering_connection_id = aws_nat_gateway.main.id    #throug internet gatway so we mentioned id here
+  nat_gateway_id = aws_nat_gateway.main.id    #throug internet gatway so we mentioned id here
 }
 
 #now association routes to route tables
