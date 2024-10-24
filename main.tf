@@ -155,7 +155,7 @@ resource "aws_route_table" "database" {
 resource "aws_route" "public" {
   route_table_id            = aws_route_table.public.id
   destination_cidr_block    = "0.0.0.0/0"
-   gateway_id = aws_internet_gateway.vgw.id    #throug internet gatway so we mentioned id here
+  gateway_id = aws_internet_gateway.vgw.id    #throug internet gatway so we mentioned id here
 }
 
 resource "aws_route" "private_nat" {
